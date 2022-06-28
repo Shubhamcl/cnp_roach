@@ -358,3 +358,46 @@ def get_dataloader(dataset_dir, env_wrapper, im_augmentation, batch_size=32, num
              f'expert hours: {val_expert_frames/10/3600:.2f}, DAGGER hours: {val_dagger_frames/10/3600:.2f}.')
 
     return train, val
+
+def get_cnp_dataloader(dataset_dir, env_wrapper, im_augmentation, batch_size=32, num_workers=8):
+
+    def make_dataset(list_expert_h5, list_dagger_h5, is_train):
+
+        if is_train and (im_augmentation is not None):
+            im_augmenter = getattr(augmenter, im_augmentation)
+        else:
+            im_augmenter = None
+
+        dataset = CNPDataset(list_expert_h5, list_dagger_h5, env_wrapper, im_augmenter)
+        dataloader = DataLoader(dataset, batch_size=batch_size, num_workers=num_workers,
+                                shuffle=True, drop_last=True, pin_memory=False)
+        return dataloader, dataset.expert_frames, dataset.dagger_frames
+
+    dataset_path = Path(dataset_dir)
+
+    list_expert_h5 = list(dataset_path.glob('expert/*.h5'))
+    list_dagger_h5 = list(dataset_path.glob('*/*/*.h5'))
+
+    list_expert_h5 = sorted(list_expert_h5, key=lambda x: int(x.name.split('.')[0]))
+    list_dagger_h5 = sorted(list_dagger_h5, key=lambda x: int(x.name.split('.')[0]))
+
+    list_expert_h5_train = [x for i, x in enumerate(list_expert_h5) if i % 10 != 0]
+    list_dagger_h5_train = [x for i, x in enumerate(list_dagger_h5) if i % 10 != 0]
+
+    list_expert_h5_val = [x for i, x in enumerate(list_expert_h5) if i % 10 == 0]
+    list_dagger_h5_val = [x for i, x in enumerate(list_dagger_h5) if i % 10 == 0]
+
+    # list_h5_train = list_h5[:2]
+    # list_h5_val = list_h5[0:1]
+
+    log.info(f'Loading training dataset')
+    train, train_expert_frames, train_dagger_frames = make_dataset(list_expert_h5_train, list_dagger_h5_train, True)
+    log.info(f'Loading validation dataset')
+    val, val_expert_frames, val_dagger_frames = make_dataset(list_expert_h5_val, list_dagger_h5_val, False)
+
+    log.info(f'TRAIN expert episodes: {len(list_expert_h5_train)}, DAGGER episodes: {len(list_dagger_h5_train)}, '
+             f'expert hours: {train_expert_frames/10/3600:.2f}, DAGGER hours: {train_dagger_frames/10/3600:.2f}.')
+    log.info(f'VAL expert episodes: {len(list_expert_h5_val)}, DAGGER episodes: {len(list_dagger_h5_val)}, '
+             f'expert hours: {val_expert_frames/10/3600:.2f}, DAGGER hours: {val_dagger_frames/10/3600:.2f}.')
+
+    return train, val

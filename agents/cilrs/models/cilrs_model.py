@@ -318,7 +318,7 @@ class CoILICRA_CNP(nn.Module):
                  squash_outputs=True,
                  perception_net='resnet34',
                  ):
-        super(CoILICRA, self).__init__()
+        super(CoILICRA_CNP, self).__init__()
 
         self._init_kwargs = copy.deepcopy(locals())
         del self._init_kwargs['self']

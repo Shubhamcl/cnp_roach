@@ -153,10 +153,10 @@ class CNPDataset(Dataset):
             with h5py.File(h5_path, 'r', libver='latest', swmr=True) as hf:
                 
                 # Separate steps into context and observation
-                all_steps = list(hf.items())
-                sample_size = int(len(all_steps)*self.context_size)
-                context_selection = np.random.randint(0, len(all_steps), sample_size)
-                obs_selection = set(range(len(all_steps))) - set(context_selection)
+                all_steps = np.array(list(hf.items()))
+                sample_size = int(all_steps.shape[0]*self.context_size)
+                context_selection = np.random.randint(0, all_steps.shape[0], sample_size)
+                obs_selection = list(set(range(all_steps.shape[0])) - set(context_selection))
                 
                 context_list = all_steps[context_selection]
                 obs_list = all_steps[obs_selection]

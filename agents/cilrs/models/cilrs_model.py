@@ -387,7 +387,7 @@ class CoILICRA_CNP(nn.Module):
         # Context concat/join block
         self.final_join = Join(params={'after_process':
                                  FC(params={'neurons':
-                                            [join_neurons[0]*2] + join_neurons,
+                                            [join_neurons[-1]*2] + join_neurons,
                                             'dropouts': join_dropouts,
                                             'end_layer': nn.ReLU}),
                                  'mode': 'cat'})
@@ -484,7 +484,7 @@ class CoILICRA_CNP(nn.Module):
                 nn.init.xavier_uniform_(m.weight)
                 nn.init.constant_(m.bias, 0.1)
 
-    def forward(self, im, state, c_im, c_state):
+    def forward(self, im, state, cnxt):
         '''
         im: (b, c, t, h, w) np.uint8
         state: (n,)
@@ -498,7 +498,8 @@ class CoILICRA_CNP(nn.Module):
         if not self._video_input:
             b, c, t, h, w = im.shape
             im = im.view(b, c*t, h, w)
-
+            bx, cx, tx, hx, wx = cnxt['im'].shape
+            cnxt['im'] = cnxt['im'].view(bx, cx*tx, hx, wx)
         """ ###### APPLY THE PERCEPTION MODULE """
         x = self.perception(im)
 
@@ -509,10 +510,10 @@ class CoILICRA_CNP(nn.Module):
         j = self.join(x, m)
 
         """ ###### CONTEXT IMAGE """
-        cp = self.context_perception(c_im)
+        cp = self.context_perception(cnxt['im'])
         
         """ ###### CONTEXT STATE """
-        cm = self.context_measurements(c_state)
+        cm = self.context_measurements(cnxt['state'])
 
         """ Join contexts """
         cj = self.context_join(cp, cm)

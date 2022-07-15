@@ -267,7 +267,7 @@ class CNPDataset(Dataset):
                         obs[obs_key][i]['data'] = self._im_augmenter(
                             self._batch_read_number).augment_image(obs[obs_key][i]['data'])
 
-        context_index = np.random.randint(len(self._cnxt_dict[[self._cnxt_address[idx]]]))
+        context_index = np.random.randint(len(self._cnxt_dict[self._cnxt_address[idx]]))
         context = copy.deepcopy(self._cnxt_dict[self._cnxt_address[idx]][context_index])
         context_supervision = copy.deepcopy(self._cnxt_sup_dict[self._cnxt_address[idx]][context_index])
         
@@ -299,11 +299,11 @@ class CNPDataset(Dataset):
         return command, policy_input, supervision, context_input
 
     def _expand_measures(self, context_input, context_command, context_supervision):
-        context_input['state'] = torch.cat(
+        context_input['state'] = torch.cat((
             context_input['state'],
-            context_command,# len 1
+            context_command.float(),# len 1
             context_supervision['speed'],# len 1
-            context_supervision['action'])# len 2
+            context_supervision['action']))# len 2
         return context_input
 
 # [[ Thinking area ]] :

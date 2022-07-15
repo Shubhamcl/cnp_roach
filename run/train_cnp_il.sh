@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # * BC phase of training the IL agent `L_A(AP)` on the NoCrash benchmark.
 # Addition: CNP, new trainer and new model
 # FIX: create small dataset and update in the run command

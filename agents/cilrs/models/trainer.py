@@ -387,9 +387,10 @@ class CNP_trainer():
             policy_input = dict([(k, th.as_tensor(v).to(self.device)) for k, v in policy_input.items()])
             supervision = dict([(k, th.as_tensor(v).to(self.device)) for k, v in supervision.items()])
             command = th.as_tensor(command).to(self.device)
+            context_input = dict([(k, th.as_tensor(v).to(self.device)) for k, v in context_input.items()])
 
             self.optimizer.zero_grad()
-            outputs = self.policy.forward(**policy_input, **context_input)
+            outputs = self.policy.forward(im=policy_input['im'], state=policy_input['state'], cnxt=context_input)
 
             action_loss, speed_loss, value_loss, features_loss = self.criterion.forward(outputs, supervision, command)
             loss = action_loss+speed_loss+value_loss+features_loss
@@ -414,15 +415,15 @@ class CNP_trainer():
         speed_losses = []
         value_losses = []
         features_losses = []
-        for command, policy_input, supervision in dataset:
+        for command, policy_input, supervision, context_input in dataset:
 
             policy_input = dict([(k, th.as_tensor(v).to(self.device)) for k, v in policy_input.items()])
             supervision = dict([(k, th.as_tensor(v).to(self.device)) for k, v in supervision.items()])
             command = th.as_tensor(command).to(self.device)
-
+            context_input = dict([(k, th.as_tensor(v).to(self.device)) for k, v in context_input.items()])
             # controls = data['cmd']
             with th.no_grad():
-                outputs = self.policy.forward(**policy_input)
+                outputs = self.policy.forward(im=policy_input['im'], state=policy_input['state'], cnxt=context_input)
                 action_loss, speed_loss, value_loss, features_loss = self.criterion.forward(
                     outputs, supervision, command)
                 loss = action_loss+speed_loss+value_loss+features_loss

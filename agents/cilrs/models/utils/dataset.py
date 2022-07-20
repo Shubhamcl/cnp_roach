@@ -143,7 +143,10 @@ class CNPDataset(Dataset):
         self.dagger_frames = self._load_h5(list_dagger_h5)
 
     def _load_h5(self, list_h5):
-
+        """
+        Logic: for each observation refered by an idx in list of observations,
+        there will be an index of its context dictionary in self context address
+        """
         n_frames = 0
 
         # Load each h5 file

@@ -56,7 +56,7 @@ class ContextModule(torch.nn.Module):
         x_im, x_m = self._aggregate(x_im), self._aggregate(x_m)
         return x_im, x_m
 
-    def _flatten_(self, x_im, x_m, batch_size, num_context):
+    def _flatten(self, x_im, x_m, batch_size, num_context):
         bs, nc, channels, len1, len2 = x_im.shape
         x_im = torch.reshape(x_im, (batch_size*num_context, channels, len1, len2))
 
@@ -128,3 +128,22 @@ class ContextMeasurementModule(torch.nn.Module):
         # Calculates mean over context dimension
         return torch.mean(x, dim=1)
 
+# Testing:
+if __name__=="__main__":
+    from networks import resnet
+    from networks.fc import FC
+    import torch.nn as nn
+
+    percept = resnet.get_model('resnet34', [3,1,900,256], num_classes=1000, pretrained=False)
+    fc = FC(params={'neurons': [1+4] + [128, 128],
+                                       'dropouts': [0.0,0.0],
+                                       'end_layer': nn.ReLU})
+
+    cm = ContextModule(percept, fc)
+
+    im = torch.rand((16,3,3,900,256))
+    ms = torch.rand((16,3,5))
+
+    out = cm.forward(im,ms, batch_size=16, num_context=3)
+    print(out[0].shape)
+    print(out[1].shape)

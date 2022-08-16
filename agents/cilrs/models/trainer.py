@@ -276,7 +276,12 @@ class CNP_trainer():
         log.info(f'number of gpus: {self.num_gpus}')
 
         # kwargs for dataloader
-        self.batch_size = batch_size * self.num_gpus
+        # self.batch_size = batch_size * self.num_gpus
+        if self.num_gpus > 0:
+            self.batch_size = batch_size * self.num_gpus
+        else:
+            self.batch_size = batch_size
+
         self.num_workers = num_workers
         self.im_augmentation = im_augmentation
         self.lr_schedule_factor = lr_schedule_factor
